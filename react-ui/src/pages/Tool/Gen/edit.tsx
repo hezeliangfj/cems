@@ -162,7 +162,7 @@ const TableList: React.FC = () => {
 
   return (
     <Content>
-      <Card className={styles.tabsCard} bordered={false}>
+      <Card className={styles.tabsCard} variant="borderless">
         <Steps current={currentStep} className={styles.steps} items={[
           {
             title: '基本信息',

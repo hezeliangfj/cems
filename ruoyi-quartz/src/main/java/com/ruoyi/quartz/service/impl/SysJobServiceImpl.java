@@ -32,17 +32,18 @@ public class SysJobServiceImpl implements ISysJobService
     private SysJobMapper jobMapper;
 
     /**
-     * 项目启动时，初始化定时器 主要是防止手动修改数据库导致未同步到定时任务处理（注：不能手动修改数据库ID和任务组名，否则会导致脏数据）
+     * 项目启动时，初始化定时器 主要是防止手动修改数据库导致未同步到定时任务处理（注：不能手动修改数据库 ID 和任务组名，否则会导致脏数据）
      */
     @PostConstruct
-    public void init() throws SchedulerException, TaskException
+    public void init()
     {
-        scheduler.clear();
-        List<SysJob> jobList = jobMapper.selectJobAll();
-        for (SysJob job : jobList)
-        {
-            ScheduleUtils.createScheduleJob(scheduler, job);
-        }
+        // 暂时不初始化定时任务，因为 admin 模块不使用定时任务功能
+        // scheduler.clear();
+        // List<SysJob> jobList = jobMapper.selectJobAll();
+        // for (SysJob job : jobList)
+        // {
+        //     ScheduleUtils.createScheduleJob(scheduler, job);
+        // }
     }
 
     /**

@@ -45,9 +45,9 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     }
 
     /**
-     * 根据字典数据ID查询信息
+     * 根据字典数据 ID 查询信息
      * 
-     * @param dictCode 字典数据ID
+     * @param dictCode 字典数据 ID
      * @return 字典数据
      */
     @Override
@@ -57,9 +57,21 @@ public class SysDictDataServiceImpl implements ISysDictDataService
     }
 
     /**
+     * 根据字典类型查询字典数据
+     * 
+     * @param dictType 字典类型
+     * @return 字典数据集合信息
+     */
+    @Override
+    public List<SysDictData> selectDictDataByType(String dictType)
+    {
+        return dictDataMapper.selectDictDataByType(dictType);
+    }
+
+    /**
      * 批量删除字典数据信息
      * 
-     * @param dictCodes 需要删除的字典数据ID
+     * @param dictCodes 需要删除的字典数据 ID
      */
     @Override
     public void deleteDictDataByIds(Long[] dictCodes)

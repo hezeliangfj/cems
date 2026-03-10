@@ -44,7 +44,7 @@ const ImportTableList: React.FC = () => {
 
   return (
     <Content>
-      <Card bordered={false}>
+      <Card variant="borderless">
         <ProTable<GenCodeType>
           headerTitle="代码生成信息"
           rowKey="tableName"

@@ -38,11 +38,11 @@ const operationTabList = [
 export type tabKeyType = 'base' | 'password';
 
 const Center: React.FC = () => {
-  
+
   const [tabKey, setTabKey] = useState<tabKeyType>('base');
-  
+
   const [cropperModalOpen, setCropperModalOpen] = useState<boolean>(false);
-  
+
   //  获取用户信息
   const { data: userInfo, loading } = useRequest(async () => {
     return { data: await getUserInfo()};
@@ -143,7 +143,7 @@ const Center: React.FC = () => {
         <Col lg={8} md={24}>
           <Card
             title="个人信息"
-            bordered={false}
+            variant="borderless"
             loading={loading}
           >
             {!loading && (
@@ -175,7 +175,7 @@ const Center: React.FC = () => {
         </Col>
         <Col lg={16} md={24}>
           <Card
-            bordered={false}
+            variant="borderless"
             tabList={operationTabList}
             activeTabKey={tabKey}
             onTabChange={(_tabKey: string) => {
@@ -188,7 +188,7 @@ const Center: React.FC = () => {
       </Row>
       <AvatarCropper
         onFinished={() => {
-          setCropperModalOpen(false);     
+          setCropperModalOpen(false);
         }}
         open={cropperModalOpen}
         data={currentUser.avatar}

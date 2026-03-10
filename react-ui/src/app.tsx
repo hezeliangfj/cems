@@ -7,7 +7,7 @@ import { history, Link } from '@umijs/max';
 import defaultSettings from '../config/defaultSettings';
 import { errorConfig } from './requestErrorConfig';
 import { clearSessionToken, getAccessToken, getRefreshToken, getTokenExpireTime } from './access';
-import { getRemoteMenu, getRoutersInfo, getUserInfo, patchRouteWithRemoteMenus, setRemoteMenu } from './services/session';
+import { getRemoteMenu, getRoutersInfo, getUserInfo, patchRouteWithRemoteMenus, setRemoteMenu, setRouteComponents } from './services/session';
 import { PageEnum } from './enums/pagesEnums';
 
 
@@ -163,6 +163,16 @@ export async function onRouteChange({ clientRoutes, location }) {
 //   console.log('patchRoutes', routes, routeComponents);
 // }
 
+export function patchRoutes({ routes, routeComponents }: { routes: any; routeComponents?: any }) {
+  // 保存 routeComponents 到全局，供 patchRouteWithRemoteMenus 使用
+  if (routeComponents) {
+    setRouteComponents(routeComponents);
+  }
+  // 如果有 routeComponents，说明是在运行时，可以添加动态组件
+  if (routeComponents) {
+    patchRouteWithRemoteMenus(routes, routeComponents);
+  }
+}
 
 export async function patchClientRoutes({ routes }) {
   // console.log('patchClientRoutes', routes);
@@ -177,6 +187,15 @@ export function render(oldRender: () => void) {
     return;
   }
   getRoutersInfo().then(res => {
+    console.log('[Debug] getRoutersInfo raw response:', JSON.stringify(res, null, 2));
+    // 打印每个菜单项的详细信息
+    console.log('[Debug] Menu items detail:', res.map((item: any) => ({
+      path: item.path,
+      name: item.name,
+      component: item.component,
+      hasChildren: !!item.routes || !!item.children,
+      childrenCount: (item.routes || item.children || []).length
+    })));
     setRemoteMenu(res);
     oldRender()
   });

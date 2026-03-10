@@ -1,3 +1,4 @@
+use cms;
 -- ----------------------------
 -- 1、部门表
 -- ----------------------------
@@ -263,8 +264,141 @@ insert into sys_menu values('1058', '导入代码', '116', '4', '#', '', '', '',
 insert into sys_menu values('1059', '预览代码', '116', '5', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:preview',           '#', 'admin', sysdate(), '', null, '');
 insert into sys_menu values('1060', '生成代码', '116', '6', '#', '', '', '', 1, 0, 'F', '0', '0', 'tool:gen:code',              '#', 'admin', sysdate(), '', null, '');
 
+-- ----------------------------
+-- 5、菜单权限表
+-- ----------------------------
+drop table if exists cms_menu;
+create table cms_menu (
+                          menu_id           bigint(20)      not null auto_increment    comment '菜单ID',
+                          menu_name         varchar(50)     not null                   comment '菜单名称',
+                          parent_id         bigint(20)      default 0                  comment '父菜单ID',
+                          order_num         int(4)          default 0                  comment '显示顺序',
+                          path              varchar(200)    default ''                 comment '路由地址',
+                          component         varchar(255)    default null               comment '组件路径',
+                          query             varchar(255)    default null               comment '路由参数',
+                          route_name        varchar(50)     default ''                 comment '路由名称',
+                          is_frame          int(1)          default 1                  comment '是否为外链（0是 1否）',
+                          is_cache          int(1)          default 0                  comment '是否缓存（0缓存 1不缓存）',
+                          menu_type         char(1)         default ''                 comment '菜单类型（M目录 C菜单 F按钮）',
+                          visible           char(1)         default 0                  comment '菜单状态（0显示 1隐藏）',
+                          status            char(1)         default 0                  comment '菜单状态（0正常 1停用）',
+                          perms             varchar(100)    default null               comment '权限标识',
+                          icon              varchar(100)    default '#'                comment '菜单图标',
+                          create_by         varchar(64)     default ''                 comment '创建者',
+                          create_time       datetime                                   comment '创建时间',
+                          update_by         varchar(64)     default ''                 comment '更新者',
+                          update_time       datetime                                   comment '更新时间',
+                          remark            varchar(500)    default ''                 comment '备注',
+                          primary key (menu_id)
+) engine=innodb auto_increment=2000 comment = '菜单权限表';
 
 -- ----------------------------
+-- 初始化-菜单信息表数据
+-- ----------------------------
+-- ----------------------------
+-- 1. 一级菜单 (目录)
+-- ----------------------------
+-- 清理旧数据 (可选，生产环境请谨慎)
+-- DELETE FROM cms_menu;
+
+-- 1. 系统管理 (仅管理员可见)
+INSERT INTO cms_menu VALUES ('1', '系统管理', '0', '1', 'system',           null, '', '', 1, 0, 'M', '0', '0', '', 'SettingOutlined',   'admin', sysdate(), '', null, '系统管理目录');
+
+-- 2. 任务中心 (环卫/城管 + 管理员)
+-- 对应业务：任务表 (cms_task), 任务用户表 (cms_task_user)
+INSERT INTO cms_menu VALUES ('2', '任务中心', '0', '2', 'task',             null, '', '', 1, 0, 'M', '0', '0', '', 'ToolOutlined',     'admin', sysdate(), '', null, '任务管理目录');
+
+-- 3. 资讯活动 (全员可见，侧重用户)
+-- 对应业务：资讯 (cms_consult), 活动 (cms_activity), 公告 (cms_announcement)
+INSERT INTO cms_menu VALUES ('3', '资讯活动', '0', '3', 'content',          null, '', '', 1, 0, 'M', '0', '0', '', 'FileTextOutlined', 'admin', sysdate(), '', null, '资讯活动目录');
+
+-- 4. 社区论坛 (全员可见)
+-- 对应业务：帖子 (cms_forum_post), 评论 (cms_forum_comment)
+INSERT INTO cms_menu VALUES ('4', '社区论坛', '0', '4', 'forum',            null, '', '', 1, 0, 'M', '0', '0', '', 'MessageOutlined',  'admin', sysdate(), '', null, '社区论坛目录');
+
+-- 5. 控制台 (全员)
+INSERT INTO cms_menu VALUES ('5', '工作台',   '0', '5', 'dashboard',        null, '', '', 1, 0, 'M', '1', '0', '', 'AppstoreOutlined', 'admin', sysdate(), '', null, '工作台');
+
+-- 6. 个人中心 (全员)
+INSERT INTO cms_menu VALUES ('6', '个人中心', '0', '6', 'account',          null, '', '', 1, 0, 'M', '1', '0', '', 'ProfileOutlined',  'admin', sysdate(), '', null, '个人中心');
+
+
+-- ----------------------------
+-- 2. 二级菜单 (具体功能页面)
+-- ----------------------------
+
+-- --- 系统管理子菜单 (仅管理员) ---
+INSERT INTO cms_menu VALUES ('100', '用户管理', '1', '1', 'user',       'system/user/index',        '', '', 1, 0, 'C', '0', '0', 'cms:user:list',        'user',          'admin', sysdate(), '', null, '用户管理菜单');
+INSERT INTO cms_menu VALUES ('101', '角色管理', '1', '2', 'role',       'system/role/index',        '', '', 1, 0, 'C', '0', '0', 'cms:role:list',        'peoples',       'admin', sysdate(), '', null, '角色管理菜单');
+INSERT INTO cms_menu VALUES ('102', '菜单权限', '1', '3', 'menu',       'system/menu/index',        '', '', 1, 0, 'C', '0', '0', 'cms:menu:list',        'tree-table',    'admin', sysdate(), '', null, '菜单权限菜单');
+INSERT INTO cms_menu VALUES ('103', '公告管理', '1', '4', 'notice',     'system/notice/index',      '', '', 1, 0, 'C', '0', '0', 'cms:notice:list',      'message',       'admin', sysdate(), '', null, '公告管理菜单');
+
+-- --- 任务中心子菜单 ---
+-- 环卫/城管：接收任务、处理任务
+INSERT INTO cms_menu VALUES ('200', '任务列表', '2', '1', 'taskList',   'task/list/index',          '', '', 1, 0, 'C', '0', '0', 'cms:task:list',        'list',          'admin', sysdate(), '', null, '任务列表菜单');
+INSERT INTO cms_menu VALUES ('201', '我的任务', '2', '2', 'myTask',     'task/my/index',            '', '', 1, 0, 'C', '0', '0', 'cms:task:my',          'user',          'admin', sysdate(), '', null, '我的任务菜单');
+-- 用户：发起举报/问题 (对应任务创建)
+INSERT INTO cms_menu VALUES ('202', '我要举报', '2', '3', 'report',     'task/report/index',        '', '', 1, 0, 'C', '0', '0', 'cms:task:report',      'warning',       'admin', sysdate(), '', null, '发起举报菜单');
+
+-- --- 资讯活动子菜单 ---
+INSERT INTO cms_menu VALUES ('300', '资讯详情', '3', '1', 'consult',    'content/consult/index',    '', '', 1, 0, 'C', '0', '0', 'cms:consult:list',     'file-text',     'admin', sysdate(), '', null, '资讯列表菜单');
+INSERT INTO cms_menu VALUES ('301', '活动报名', '3', '2', 'activity',   'content/activity/index',   '', '', 1, 0, 'C', '0', '0', 'cms:activity:list',    'calendar',      'admin', sysdate(), '', null, '活动列表菜单');
+INSERT INTO cms_menu VALUES ('302', '公告查看', '3', '3', 'announce',   'content/announce/index',   '', '', 1, 0, 'C', '0', '0', 'cms:announce:list',    'bell',          'admin', sysdate(), '', null, '公告查看菜单');
+
+-- --- 社区论坛子菜单 ---
+INSERT INTO cms_menu VALUES ('400', '帖子列表', '4', '1', 'postList',   'forum/post/index',         '', '', 1, 0, 'C', '0', '0', 'cms:forum:post:list',  'message',       'admin', sysdate(), '', null, '帖子列表菜单');
+INSERT INTO cms_menu VALUES ('401', '我的发帖', '4', '2', 'myPost',     'forum/my/index',           '', '', 1, 0, 'C', '0', '0', 'cms:forum:my:list',    'user',          'admin', sysdate(), '', null, '我的发帖菜单');
+
+
+-- ----------------------------
+-- 3. 按钮/操作权限 (三级)
+-- ----------------------------
+
+-- --- 系统管理按钮 ---
+INSERT INTO cms_menu VALUES ('1000', '用户查询', '100', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:user:query',          '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1001', '用户新增', '100', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:user:add',            '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1002', '用户修改', '100', '3', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:user:edit',           '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1003', '用户删除', '100', '4', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:user:remove',         '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1004', '重置密码', '100', '5', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:user:resetPwd',       '#', 'admin', sysdate(), '', null, '');
+
+INSERT INTO cms_menu VALUES ('1007', '角色查询', '101', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:role:query',          '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1008', '角色新增', '101', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:role:add',            '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1009', '角色修改', '101', '3', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:role:edit',           '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1010', '角色删除', '101', '4', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:role:remove',         '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1011', '分配权限', '101', '5', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:role:auth',           '#', 'admin', sysdate(), '', null, '');
+
+INSERT INTO cms_menu VALUES ('1035', '公告发布', '103', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:notice:add',          '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1036', '公告修改', '103', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:notice:edit',         '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('1037', '公告删除', '103', '3', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:notice:remove',       '#', 'admin', sysdate(), '', null, '');
+
+-- --- 任务中心按钮 ---
+-- 通用/管理员
+INSERT INTO cms_menu VALUES ('2000', '任务查询', '200', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:query',          '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('2001', '任务分发', '200', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:distribute',     '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('2002', '任务审核', '200', '3', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:audit',          '#', 'admin', sysdate(), '', null, '');
+
+-- 环卫/城管 (我的任务)
+INSERT INTO cms_menu VALUES ('2010', '承接任务', '201', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:accept',         '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('2011', '提交结果', '201', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:submit',         '#', 'admin', sysdate(), '', null, '');
+
+-- 用户 (举报)
+INSERT INTO cms_menu VALUES ('2020', '提交举报', '202', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:task:submitReport',   '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('2021', '上传图片', '202', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:image:upload',        '#', 'admin', sysdate(), '', null, '');
+
+-- --- 资讯活动按钮 ---
+INSERT INTO cms_menu VALUES ('3000', '资讯发布', '300', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:consult:add',         '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('3001', '资讯下架', '300', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:consult:remove',      '#', 'admin', sysdate(), '', null, '');
+
+INSERT INTO cms_menu VALUES ('3010', '活动报名', '301', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:activity:signup',     '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('3011', '活动发布', '301', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:activity:add',        '#', 'admin', sysdate(), '', null, '');
+
+-- --- 社区论坛按钮 ---
+INSERT INTO cms_menu VALUES ('4000', '发布帖子', '400', '1', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:forum:post:add',      '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('4001', '删除帖子', '400', '2', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:forum:post:remove',   '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('4002', '置顶帖子', '400', '3', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:forum:post:top',      '#', 'admin', sysdate(), '', null, '');
+
+INSERT INTO cms_menu VALUES ('4010', '发表评论', '400', '4', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:forum:comment:add',   '#', 'admin', sysdate(), '', null, '');
+INSERT INTO cms_menu VALUES ('4011', '点赞操作', '400', '5', '', '', '', '', 1, 0, 'F', '0', '0', 'cms:forum:like',          '#', 'admin', sysdate(), '', null, '');
 -- 6、用户和角色关联表  用户N-1角色
 -- ----------------------------
 drop table if exists sys_user_role;
@@ -702,4 +836,148 @@ create table gen_table_column (
   update_by         varchar(64)     default ''                 comment '更新者',
   update_time       datetime                                   comment '更新时间',
   primary key (column_id)
-) engine=innodb auto_increment=1 comment = '代码生成业务表字段';
+);
+
+-- ----------------------------
+-- 先删除所有表，按照依赖关系的顺序
+-- ----------------------------
+drop table if exists cms_role_permission;
+drop table if exists cms_user_role;
+drop table if exists cms_role;
+drop table if exists cms_permission;
+
+-- ----------------------------
+-- 20、CMS角色表
+-- ----------------------------
+drop table if exists cms_role;
+create table cms_role (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    role_id BIGINT NOT NULL COMMENT '角色id',
+    role_name VARCHAR(50) NOT NULL COMMENT '角色名称',
+    role_code VARCHAR(50) NOT NULL COMMENT '角色编码',
+    description VARCHAR(200) COMMENT '描述',
+    status TINYINT DEFAULT 1 COMMENT '0: 禁用，1：启用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+    create_at BIGINT NOT NULL COMMENT '创建人',
+    update_at BIGINT NOT NULL COMMENT '修改人',
+    memo VARCHAR(100) COMMENT '备注'
+) COMMENT '角色表';
+
+-- ----------------------------
+-- 21、CMS用户和角色关联表  用户N-1角色
+-- ----------------------------
+drop table if exists cms_user_role;
+create table cms_user_role (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    user_id BIGINT NOT NULL COMMENT '用户id',
+    role_id BIGINT NOT NULL COMMENT '角色id',
+    status TINYINT DEFAULT 1 COMMENT '0: 禁用，1：启用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+    create_at BIGINT NOT NULL COMMENT '创建人',
+    update_at BIGINT NOT NULL COMMENT '修改人',
+    memo VARCHAR(100) COMMENT '备注',
+    UNIQUE KEY uk_user_role (user_id, role_id)
+) COMMENT '用户角色表';
+
+-- ----------------------------
+-- 22、CMS角色权限关联表  角色1-N权限
+-- ----------------------------
+drop table if exists cms_role_permission;
+create table cms_role_permission (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    role_id BIGINT NOT NULL COMMENT '角色id',
+    permission_id BIGINT NOT NULL COMMENT '权限id',
+    status TINYINT DEFAULT 1 COMMENT '0: 禁用，1：启用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+    create_at BIGINT NOT NULL COMMENT '创建人',
+    update_at BIGINT NOT NULL COMMENT '修改人',
+    memo VARCHAR(100) COMMENT '备注',
+    UNIQUE KEY uk_role_perm (role_id, permission_id)
+) COMMENT '角色权限表';
+
+-- ----------------------------
+-- 23、CMS权限表
+-- ----------------------------
+drop table if exists cms_permission;
+create table cms_permission (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '主键',
+    perm_id BIGINT NOT NULL COMMENT '权限id',
+    perm_name VARCHAR(50) NOT NULL COMMENT '权限名称',
+    perm_code VARCHAR(100) NOT NULL COMMENT '权限编码',
+    perm_type TINYINT DEFAULT 1 COMMENT '1: 菜单 2: 按钮 3: 接口',
+    parent_id BIGINT DEFAULT 0 COMMENT '父级ID',
+    path VARCHAR(200) COMMENT '资源路径',
+    status TINYINT DEFAULT 1 COMMENT '0: 禁用，1：启用',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+    create_at BIGINT NOT NULL COMMENT '创建人',
+    update_at BIGINT NOT NULL COMMENT '修改人',
+    memo VARCHAR(100) COMMENT '备注'
+) COMMENT '权限表';
+
+-- ----------------------------
+-- 初始化-CMS角色表数据
+-- ----------------------------
+insert into cms_role (role_id, role_name, role_code, description, status, create_at, update_at) values
+(1, '超级管理员', 'admin', '系统超级管理员', 1, 1, 1),
+(2, '普通用户', 'user', '普通用户', 1, 1, 1);
+
+-- ----------------------------
+-- 初始化-CMS权限表数据
+-- ----------------------------
+insert into cms_permission (perm_id, perm_name, perm_code, perm_type, parent_id, path, status, create_at, update_at) values
+(1, '系统管理', 'system:manage', 1, 0, 'system', 1, 1, 1),
+(2, '用户管理', 'system:user:list', 1, 1, 'system/user', 1, 1, 1),
+(3, '角色管理', 'system:role:list', 1, 1, 'system/role', 1, 1, 1),
+(4, '权限管理', 'system:permission:list', 1, 1, 'system/permission', 1, 1, 1),
+(5, '任务中心', 'task:manage', 1, 0, 'task', 1, 1, 1),
+(6, '任务列表', 'task:list', 1, 5, 'task/list', 1, 1, 1),
+(7, '我的任务', 'task:my', 1, 5, 'task/my', 1, 1, 1),
+(8, '社区论坛', 'forum:manage', 1, 0, 'forum', 1, 1, 1),
+(9, '论坛列表', 'forum:list', 1, 8, 'forum/list', 1, 1, 1),
+(10, '我的帖子', 'forum:my', 1, 8, 'forum/my', 1, 1, 1),
+(11, '工作台', 'workbench:manage', 1, 0, 'workbench', 1, 1, 1),
+(12, '仪表盘', 'workbench:dashboard', 1, 11, 'workbench/dashboard', 1, 1, 1),
+(13, '个人中心', 'profile:manage', 1, 0, 'profile', 1, 1, 1),
+(14, '个人信息', 'profile:info', 1, 13, 'profile/info', 1, 1, 1),
+(15, '账号设置', 'profile:settings', 1, 13, 'profile/settings', 1, 1, 1);
+
+-- ----------------------------
+-- 初始化-CMS角色权限关联表数据
+-- ----------------------------
+-- 超级管理员权限（所有权限）
+insert into cms_role_permission (role_id, permission_id, status, create_at, update_at) values
+(1, 1, 1, 1, 1),
+(1, 2, 1, 1, 1),
+(1, 3, 1, 1, 1),
+(1, 4, 1, 1, 1),
+(1, 5, 1, 1, 1),
+(1, 6, 1, 1, 1),
+(1, 7, 1, 1, 1),
+(1, 8, 1, 1, 1),
+(1, 9, 1, 1, 1),
+(1, 10, 1, 1, 1),
+(1, 11, 1, 1, 1),
+(1, 12, 1, 1, 1),
+(1, 13, 1, 1, 1),
+(1, 14, 1, 1, 1),
+(1, 15, 1, 1, 1);
+
+-- 普通用户权限（只有社区论坛和个人中心）
+insert into cms_role_permission (role_id, permission_id, status, create_at, update_at) values
+(2, 8, 1, 1, 1),
+(2, 9, 1, 1, 1),
+(2, 10, 1, 1, 1),
+(2, 13, 1, 1, 1),
+(2, 14, 1, 1, 1),
+(2, 15, 1, 1, 1);
+
+-- ----------------------------
+-- 初始化-CMS用户和角色关联表数据
+-- ----------------------------
+insert into cms_user_role (user_id, role_id, status, create_at, update_at) values
+(1, 1, 1, 1, 1),
+(2, 2, 1, 1, 1);

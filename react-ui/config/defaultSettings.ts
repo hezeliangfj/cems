@@ -1,9 +1,17 @@
+/**
+ * @description:
+ * @return {*}
+ */
 import { ProLayoutProps } from '@ant-design/pro-components';
 
 /**
- * @name
+ * @nametitle: 系统布局配置
  */
 const Settings: ProLayoutProps & {
+  /**
+   * @description:
+   * @return {*}
+   */
   pwa?: boolean;
   logo?: string;
 } = {
@@ -15,7 +23,7 @@ const Settings: ProLayoutProps & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: 'Ant Design Pro',
+  title: '社区环境监督系统',
   pwa: true,
   logo: 'https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg',
   iconfontUrl: '',
